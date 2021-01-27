@@ -1,6 +1,5 @@
-"use strict";
-
-const {app, BrowserWindow} = require('electron');
+import {app, BrowserWindow, ipcMain} from 'electron';
+import * as path from "path";
 
 function createWindow() {
     const win = new BrowserWindow({
@@ -13,18 +12,18 @@ function createWindow() {
 
     win.setMenu(null);
 
-    win.loadFile('index.html');
+    win.loadFile(path.join(__dirname, "../index.html"));
 }
 
 app.whenReady().then(createWindow);
 
-app.on('window-all-closed', _ => {
+app.on('window-all-closed', () => {
     if (process.platform !== 'darwin') {
         app.quit();
     }
 });
 
-app.on('activate', _ => {
+app.on('activate', () => {
     if (BrowserWindow.getAllWindows().length === 0) {
         createWindow();
     }
