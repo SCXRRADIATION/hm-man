@@ -1,11 +1,13 @@
 import {app, BrowserWindow, IpcMain, ipcMain, IpcMainEvent, dialog, remote} from 'electron';
 import * as path from 'path';
 import * as windowStateKeeper from 'electron-window-state';
-import {TestButtonChannel} from './TestButtonChannel';
+import {LoginButtonChannel} from './ipc/LoginButtonChannel';
 import * as http from 'http';
 import * as net from 'net';
 import * as fs from 'fs';
-import {OAuthWorkflow} from "./OAuthWorkflow";
+import {OAuthWorkflow} from "./core/auth/OAuthWorkflow";
+import {IpcChannelInterface} from "./ipc/IpcService";
+import {LoginBrowserButtonChannel} from './ipc/LoginBrowserButtonChannel';
 
 export class State {
     public static oauthWorkflow: OAuthWorkflow = new OAuthWorkflow();
@@ -81,18 +83,9 @@ class Main {
     }
 }
 
-export interface IpcRequest {
-    responseChannel?: string;
 
-    params?: string[];
-}
-
-export interface IpcChannelInterface {
-    getName(): string
-
-    handle(event: IpcMainEvent, request: IpcRequest): void;
-}
 
 (new Main()).init([
-    new TestButtonChannel()
+    new LoginButtonChannel(),
+    new LoginBrowserButtonChannel()
 ]);

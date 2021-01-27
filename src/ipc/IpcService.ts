@@ -1,5 +1,16 @@
-import {IpcRenderer} from 'electron';
-import {IpcRequest} from './main';
+import {IpcMainEvent, IpcRenderer} from 'electron';
+
+export interface IpcRequest {
+    responseChannel?: string;
+
+    params?: string[];
+}
+
+export interface IpcChannelInterface {
+    getName(): string
+
+    handle(event: IpcMainEvent, request: IpcRequest): void;
+}
 
 export class IpcService {
     private ipcRenderer?: IpcRenderer;

@@ -23,7 +23,7 @@ body {
     line-height: 21px;
 }
 
-#login-button {
+#login-btn {
     border: none;
     padding: 15px;
     font-size: 20px;
@@ -32,11 +32,11 @@ body {
     color: #000000;
 }
 
-#login-button:hover {
+#login-btn:hover {
     background-color: #ffff00;
 }
 
-#login-button:focus {
+#login-btn:focus {
     outline: none;
 }
 
