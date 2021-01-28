@@ -170,6 +170,10 @@ body {
     min-width: 0;
 }
 
+.assignment-list-course {
+    min-width: 0;
+}
+
 .assignment-list-title p {
     font-size: 22px !important;
 }
@@ -180,7 +184,7 @@ body {
 }
 
 .assignment-list-time.overdue {
-    background-color: #ff0000;
+    background-color: #f00;
 }
 
 .assignment-list-time.warning {
@@ -191,7 +195,7 @@ body {
     background-color: #42ff00;
 }
 
-.assignment-list-description p, .assignment-list-title p {
+.assignment-list-description p, .assignment-list-title p, .assignment-list-course p {
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;

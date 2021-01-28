@@ -10,6 +10,14 @@ import * as http from 'http';
 import {OAuthError, OAuthWorkflow} from '../core/auth/OAuthWorkflow';
 import {IpcChannelInterface, IpcRequest} from './IpcService';
 
+export interface AssignmentPreview {
+    title: string,
+    due: string,
+    dueStatus: string,
+    description: string,
+    courseName: string
+}
+
 export class LoadStartupContentChannel implements IpcChannelInterface {
 
     getName(): string {
@@ -19,7 +27,7 @@ export class LoadStartupContentChannel implements IpcChannelInterface {
     handle(event: Electron.IpcMainEvent, request: IpcRequest): void {
 
         State.oauthWorkflow.ensureLoggedIn(result => {
-            if (!result){
+            if (!result) {
                 return; // Not Logged In
             }
 
@@ -31,44 +39,70 @@ export class LoadStartupContentChannel implements IpcChannelInterface {
                 pageSize: 10
             }, (err, res) => {
                 if (err) {
+                    // TODO: Display error nicely.
                     return console.error('The API returned an error: ' + err);
                 }
 
-                console.log(res.data);
+                let assignments: AssignmentPreview[] = [];
 
                 const courses = res.data.courses;
                 if (courses && courses.length) {
-                    console.log('Courses:');
                     courses.forEach((course) => {
-                        console.log(`${course.name} (${course.id})`);
-                        classroom.courses.courseWork.list({
-                            courseId: course.id,
-                            pageSize: 30
-                        }, (err, res) => {
-                            if (err) {
-                                return console.error('The API returned an error: ' + err);
-                            }
+                        if (course.courseState === 'ACTIVE') {
+                            classroom.courses.courseWork.list({
+                                courseId: course.id,
+                                pageSize: 30
+                            }, (err, res) => {
+                                if (err) {
+                                    return console.error('The API returned an error: ' + err);
+                                }
 
-                            res.data.courseWork.forEach((courseWork) => {
-                                let id = courseWork.id;
-                                classroom.courses.courseWork.studentSubmissions.list({
-                                    courseId: course.id,
-                                    courseWorkId: id
-                                }, (err, res) => {
-                                    if (err) {
-                                        return console.error('The API returned an error: ' + err);
+                                res.data.courseWork?.forEach((courseWork) => {
+                                    let id = courseWork.id;
+                                    if (courseWork.workType === 'ASSIGNMENT') {
+                                        classroom.courses.courseWork.studentSubmissions.list({
+                                            courseId: course.id,
+                                            courseWorkId: id,
+                                        }, (err, res) => {
+                                            if (err) {
+                                                return console.error('The API returned an error: ' + err);
+                                            }
+
+                                            // TODO: Is indexing correct here?
+                                            if (res.data.studentSubmissions[0].state !== 'TURNED_IN') {
+                                                let due = '', dueDate = courseWork.dueDate,
+                                                    dueTime = courseWork.dueTime;
+
+                                                if (dueDate !== undefined && dueTime !== undefined) {
+                                                    let dueDateObj = new Date(dueDate.year, dueDate.month, dueDate.day, dueTime.hours, dueTime.minutes, dueTime.seconds);
+                                                    due = '1' + 'd';
+                                                    // TODO: Calculate time in days
+                                                }
+
+                                                assignments.push({
+                                                    title: courseWork.title,
+                                                    description: courseWork.description?.substr(0, 100),
+                                                    courseName: course.name,
+                                                    due: due,
+                                                    dueStatus: 'warning'
+                                                    // TODO: Change due values
+                                                });
+
+
+                                                event.sender.send('render-assignment-items', assignments);
+                                            }
+                                        });
                                     }
 
-                                    console.log(res.data);
                                 });
                             });
-                        });
+                        }
                     });
                 } else {
                     console.log('No courses found');
                 }
             });
-        })
+        });
 
     }
 

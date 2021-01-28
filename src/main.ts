@@ -59,8 +59,6 @@ class Main {
         this.mainWindow.webContents.on('did-finish-load', () => {
             this.mainWindow.webContents.send('page-load', CredentialState.TOKEN_PATH);
         });
-
-        //this.mainWindow.webContents.openDevTools();
     }
 
     private onWindowAllClosed() {
@@ -83,8 +81,6 @@ class Main {
         });
     }
 }
-
-
 
 (new Main()).init([
     new LoginButtonChannel(),
