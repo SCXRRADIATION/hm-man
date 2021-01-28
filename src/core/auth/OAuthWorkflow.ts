@@ -4,7 +4,8 @@ import * as net from "net";
 import {google} from "googleapis";
 import {OAuth2Client} from 'google-auth-library';
 import * as fs from "fs";
-import {shell} from "electron";
+import {app, shell} from 'electron';
+import * as path from 'path';
 
 interface Credentials {
     installed: {
@@ -137,6 +138,27 @@ export class OAuthWorkflow {
             });
             State.oauthWorkflow.loginCallback?.(true);
         });
+    }
+
+    public ensureLoggedIn(callback:(result:boolean) => void)
+    {
+        fs.readFile(CredentialState.TOKEN_PATH, (err, token) => {
+            if (err) {
+                callback(false);
+                return;
+            }
+
+            const CREDENTIALS_PATH = path.join(app.getPath('userData'), 'credentials.json');
+
+            fs.readFile(CREDENTIALS_PATH, (err, content) => {
+                const {client_secret, client_id, redirect_uris} = JSON.parse(content.toString()).installed;
+                this.oAuth2Client = new google.auth.OAuth2(
+                    client_id, client_secret, redirect_uris[0]);
+
+                this.oAuth2Client.setCredentials(JSON.parse(token.toString()))
+                callback(true);
+            });
+        })
     }
 
 }

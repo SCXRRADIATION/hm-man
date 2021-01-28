@@ -8,6 +8,7 @@ import * as fs from 'fs';
 import {OAuthWorkflow} from "./core/auth/OAuthWorkflow";
 import {IpcChannelInterface} from "./ipc/IpcService";
 import {LoginBrowserButtonChannel} from './ipc/LoginBrowserButtonChannel';
+import {LoadStartupContentChannel} from './ipc/LoadStartupContentChannel';
 
 export class State {
     public static oauthWorkflow: OAuthWorkflow = new OAuthWorkflow();
@@ -59,7 +60,7 @@ class Main {
             this.mainWindow.webContents.send('page-load', CredentialState.TOKEN_PATH);
         });
 
-        this.mainWindow.webContents.openDevTools();
+        //this.mainWindow.webContents.openDevTools();
     }
 
     private onWindowAllClosed() {
@@ -87,5 +88,6 @@ class Main {
 
 (new Main()).init([
     new LoginButtonChannel(),
-    new LoginBrowserButtonChannel()
+    new LoginBrowserButtonChannel(),
+    new LoadStartupContentChannel()
 ]);

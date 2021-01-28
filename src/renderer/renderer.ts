@@ -8,12 +8,17 @@ ipcRenderer.on('page-load', function (event, data) {
     const loginContainer = document.getElementById('login-container');
     if (fs.existsSync(data)) {
         loginContainer.style.display = 'none';
+        loadStartupContent()
+    }
+    else
+    {
+        document.getElementById('login-btn').addEventListener('click', async function () {
+            const result = await ipc.send<boolean>('login-btn-click');
+        });
     }
 
-    document.getElementById('login-btn').addEventListener('click', async function () {
-        const result = await ipc.send<boolean>('login-btn-click');
-    });
 });
+
 
 ipcRenderer.on('oauth-login-browser', function (event, data) {
     // TODO: Screen to display when user is logging in in web browser.
@@ -24,18 +29,20 @@ ipcRenderer.on('oauth-login-browser', function (event, data) {
     const message = document.createElement('p');
     message.innerHTML = 'Please login with your web browser';
 
-    const br = document.createElement('br');
     const message2 = document.createElement('p');
     message2.innerHTML = 'If your web browser does not open, click the button below.';
+
+    const br = document.createElement('br');
 
     const btn = document.createElement('btn');
     btn.innerHTML = 'Open Web Browser';
     btn.setAttribute('id', 'oauth-open-browser-btn');
+    btn.setAttribute('class', 'btn');
     btn.addEventListener('click', async function () {
         const result = await ipc.send<boolean>('oauth-open-browser-btn-click');
     });
 
-    ele.append(header, message, br, message2, btn);
+    ele.append(header, message, message2, br, btn);
     document.body.appendChild(ele);
 });
 
@@ -49,4 +56,10 @@ ipcRenderer.on('oauth-login-complete', function (event, data) {
     if (ele2) {
         document.body.removeChild(ele2);
     }
+    loadStartupContent()
 });
+
+const loadStartupContent = function()
+{
+    ipc.send<any>('load-startup-content');
+}
