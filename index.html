@@ -13,15 +13,35 @@
     <button class="btn btn-primary" id='login-btn'>Login</button>
 </div>
 <div id="main-container">
-    <div id="side-bar">
-        <h1>Sample Text</h1>
+    <div id="assignment-container">
+        <h1>Assignments</h1>
+        <div id="assignment-filter-toolbar">
+            <div id="assignment-filter-toggle">
+                <ul>
+                    <li>All</li>
+                    <li class="active">Due In</li>
+                    <li>Done</li>
+                </ul>
+            </div>
+            <div id="assignment-filter-dropdown">
+                <p>Filter &blacktriangledown;</p>
+            </div>
+        </div>
+        <div id="assignment-list">
+            <ul>
+            </ul>
+        </div>
+        <div id="assignment-settings">
+            <p>Settings</p>
+        </div>
     </div>
-    <div id="main-content">
-        <h1>Longer Sample Text.</h1>
+    <div id="content-container">
+        <h1>No Assignment Selected</h1>
+        <p>Select an assignment in the left panel.</p>
     </div>
 </div>
 <script>
-    require("./dist/renderer/renderer.js");
+    require('./dist/renderer/renderer.js');
 </script>
 </body>
 </html>

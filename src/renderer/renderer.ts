@@ -5,13 +5,13 @@ import * as fs from 'fs';
 const ipc = new IpcService();
 
 ipcRenderer.on('page-load', function (event, data) {
-    const loginContainer = document.getElementById('login-container');
     if (fs.existsSync(data)) {
-        loginContainer.style.display = 'none';
+        document.getElementById('login-container').style.display = 'none';
         loadStartupContent()
     }
     else
     {
+        document.getElementById('main-container').style.display = 'none';
         document.getElementById('login-btn').addEventListener('click', async function () {
             const result = await ipc.send<boolean>('login-btn-click');
         });
@@ -56,8 +56,11 @@ ipcRenderer.on('oauth-login-complete', function (event, data) {
     if (ele2) {
         document.body.removeChild(ele2);
     }
+
+    document.getElementById('main-container').style.display = 'block';
     loadStartupContent()
 });
+
 
 const loadStartupContent = function()
 {
