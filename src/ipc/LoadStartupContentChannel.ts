@@ -70,22 +70,35 @@ export class LoadStartupContentChannel implements IpcChannelInterface {
 
                                             // TODO: Is indexing correct here?
                                             if (res.data.studentSubmissions[0].state !== 'TURNED_IN') {
-                                                let due = '', dueDate = courseWork.dueDate,
-                                                    dueTime = courseWork.dueTime;
+                                                let due = '', days = 0, dueDate = courseWork.dueDate,
+                                                    dueTime = courseWork.dueTime, dueStatus = 'safe';
 
                                                 if (dueDate !== undefined && dueTime !== undefined) {
-                                                    let dueDateObj = new Date(dueDate.year, dueDate.month, dueDate.day, dueTime.hours, dueTime.minutes, dueTime.seconds);
-                                                    due = '1' + 'd';
-                                                    // TODO: Calculate time in days
+                                                    let dueDateObj = new Date(dueDate.year, dueDate.month - 1, dueDate.day, dueTime.hours, dueTime.minutes);
+                                                    let diff = (dueDateObj.getTime() / 1000) - (Date.now() / 1000);
+                                                    if (diff > 0) {
+                                                        days = Math.round(diff / 86400);
+                                                    }
+
+                                                    if (days > 0) {
+                                                        due = days.toString(10) + 'd';
+                                                    } else {
+                                                        due = 'Overdue';
+                                                    }
+
+                                                    if (days === 0) {
+                                                        dueStatus = 'overdue';
+                                                    } else if (days < 3) {
+                                                        dueStatus = 'warning';
+                                                    }
                                                 }
 
                                                 assignments.push({
                                                     title: courseWork.title,
-                                                    description: courseWork.description?.substr(0, 100),
+                                                    description: courseWork.description?.substr(0, 100) ?? '',
                                                     courseName: course.name,
                                                     due: due,
-                                                    dueStatus: 'warning'
-                                                    // TODO: Change due values
+                                                    dueStatus: dueStatus
                                                 });
 
 

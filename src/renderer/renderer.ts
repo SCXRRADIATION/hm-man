@@ -107,7 +107,10 @@ ipcRenderer.on('render-assignment-items', function (event, data: AssignmentPrevi
         itemDescription.appendChild(description);
         itemCourse.appendChild(course);
 
-        listCompact.append(itemTitle, itemTime);
+        listCompact.appendChild(itemTitle);
+        if (assignment.due !== '') {
+            listCompact.appendChild(itemTime);
+        }
         listFull.append(itemDescription, itemCourse);
 
         listItem.append(listCompact, listFull);
