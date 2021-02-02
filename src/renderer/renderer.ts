@@ -1,7 +1,7 @@
 import {ipcRenderer} from 'electron';
 import {IpcService} from '../ipc/IpcService';
 import * as fs from 'fs';
-import {AssignmentPreview} from '../ipc/LoadStartupContentChannel';
+import {AssignmentPreview} from '../core/data/Assignments';
 
 const ipc = new IpcService();
 
@@ -65,57 +65,64 @@ const loadStartupContent = function () {
     ipc.send<any>('load-startup-content');
 };
 
-ipcRenderer.on('render-assignment-items', function (event, data: AssignmentPreview[]) {
+ipcRenderer.on('clear-assignments-list', function (event) {
     const list = document.getElementById('assignment-list-ul');
     list.innerHTML = '';
-    data.forEach((assignment) => {
-        const li = document.createElement('li');
+});
 
-        const listItem = document.createElement('div');
-        listItem.setAttribute('class', 'assignment-list-item');
+ipcRenderer.on('render-assignments-error', function (event, err: Error) {
+    // TODO: Add error UI
+});
 
-        // TODO: Respect user setting of compact mode/expanded mode
-        const listCompact = document.createElement('div');
-        listCompact.setAttribute('class', 'assignment-list-compact');
+ipcRenderer.on('render-assignments-item', function (event, assignment: AssignmentPreview) {
+    const list = document.getElementById('assignment-list-ul');
 
-        const itemTitle = document.createElement('div');
-        itemTitle.setAttribute('class', 'assignment-list-title');
-        const title = document.createElement('p');
+    const li = document.createElement('li');
 
-        const itemTime = document.createElement('div');
-        itemTime.setAttribute('class', 'assignment-list-time ' + assignment.dueStatus);
-        const time = document.createElement('p');
+    const listItem = document.createElement('div');
+    listItem.setAttribute('class', 'assignment-list-item');
 
-        const listFull = document.createElement('div');
-        listFull.setAttribute('class', 'assignment-list-full');
+    // TODO: Respect user setting of compact mode/expanded mode
+    const listCompact = document.createElement('div');
+    listCompact.setAttribute('class', 'assignment-list-compact');
 
-        const itemDescription = document.createElement('div');
-        itemDescription.setAttribute('class', 'assignment-list-description');
-        const description = document.createElement('p');
+    const itemTitle = document.createElement('div');
+    itemTitle.setAttribute('class', 'assignment-list-title');
+    const title = document.createElement('p');
 
-        const itemCourse = document.createElement('div');
-        itemCourse.setAttribute('class', 'assignment-list-course');
-        const course = document.createElement('p');
+    const itemTime = document.createElement('div');
+    itemTime.setAttribute('class', 'assignment-list-time ' + assignment.dueStatus);
+    const time = document.createElement('p');
 
-        title.innerText = assignment.title;
-        time.innerText = assignment.due;
-        description.innerText = assignment.description;
-        course.innerText = assignment.courseName;
+    const listFull = document.createElement('div');
+    listFull.setAttribute('class', 'assignment-list-full');
 
-        itemTitle.appendChild(title);
-        itemTime.appendChild(time);
-        itemDescription.appendChild(description);
-        itemCourse.appendChild(course);
+    const itemDescription = document.createElement('div');
+    itemDescription.setAttribute('class', 'assignment-list-description');
+    const description = document.createElement('p');
 
-        listCompact.appendChild(itemTitle);
-        if (assignment.due !== '') {
-            listCompact.appendChild(itemTime);
-        }
-        listFull.append(itemDescription, itemCourse);
+    const itemCourse = document.createElement('div');
+    itemCourse.setAttribute('class', 'assignment-list-course');
+    const course = document.createElement('p');
 
-        listItem.append(listCompact, listFull);
-        li.appendChild(listItem);
+    title.innerText = assignment.title;
+    time.innerText = assignment.dueDays.toString() + 'd';
+    description.innerText = assignment.description;
+    course.innerText = assignment.courseName;
 
-        list.appendChild(li);
-    });
+    itemTitle.appendChild(title);
+    itemTime.appendChild(time);
+    itemDescription.appendChild(description);
+    itemCourse.appendChild(course);
+
+    listCompact.appendChild(itemTitle);
+    if (assignment.dueDays !== -1) {
+        listCompact.appendChild(itemTime);
+    }
+    listFull.append(itemDescription, itemCourse);
+
+    listItem.append(listCompact, listFull);
+    li.appendChild(listItem);
+
+    list.appendChild(li);
 });
