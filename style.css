@@ -201,6 +201,19 @@ body {
     text-overflow: ellipsis;
 }
 
+#assignment-list-loading, #assignment-list-error {
+    text-align: center;
+    color: #000;
+}
+
+#assignment-list-loading h2, #assignment-list-error h2 {
+    color: #000;
+}
+
+#assignment-list-error {
+    display: none;
+}
+
 #assignment-settings {
     position: absolute;
     bottom: 0;
@@ -218,3 +231,4 @@ body {
     padding: 16px;
     height: calc(100% - 92px);
 }
+

@@ -24,9 +24,9 @@ interface GetAssignmentsOptions {
 }
 
 export enum AssignmentDueStatus {
-    SAFE = "safe",
-    WARNING = "warning",
-    OVERDUE = "overdue"
+    SAFE = 'safe',
+    WARNING = 'warning',
+    OVERDUE = 'overdue'
 }
 
 export interface AssignmentPreview {
@@ -50,7 +50,7 @@ export class Assignments {
                 days = Math.round(diff / 86400);
             }
 
-            if (days === 0) {
+            if (days <= 0) {
                 return {dueDays: days, dueStatus: AssignmentDueStatus.OVERDUE};
             }
 
@@ -69,53 +69,60 @@ export class Assignments {
         State.oauthWorkflow.ensureLoggedIn(result => {
             if (!result) {
                 callback(AssignmentRejectionReason.NOT_LOGGED_IN);
+                return;
             }
 
             const auth = State.oauthWorkflow.oAuth2Client;
             const classroom = google.classroom({version: 'v1', auth});
 
             classroom.courses.list({
-                pageSize: options.coursesPageSize || 10
+                pageSize: options.coursesPageSize || 10,
+                courseStates: ['ACTIVE'],
             }, (err: any, res) => {
                 if (err) {
                     callback(DataCommon.getAPIErrorType(err));
+                    return;
                 }
 
                 const {courses} = res.data;
                 if (!courses || courses.length < 1) {
                     callback(AssignmentRejectionReason.NO_COURSES);
+                    return;
                 }
 
                 courses.forEach(course => {
                     const {courseState, id} = course;
-                    if (courseState === 'ACTIVE') {
-                        classroom.courses.courseWork.list({
-                            courseId: course.id,
-                            pageSize: options.courseWorkPageSize || 10
-                        }, (err, res) => {
-                            if (err) {
-                                callback(DataCommon.getAPIErrorType(err));
-                            }
+                    classroom.courses.courseWork.list({
+                        courseId: course.id,
+                        pageSize: options.courseWorkPageSize || 10
+                    }, (err, res) => {
+                        if (err) {
+                            callback(DataCommon.getAPIErrorType(err));
+                            return;
+                        }
 
-                            const {courseWork} = res.data;
-                            courseWork?.forEach(cw => {
-                                const {workType, id: cwId, dueDate, dueTime} = cw;
-                                if (workType === 'ASSIGNMENT') {
-                                    classroom.courses.courseWork.studentSubmissions.list({
-                                        courseId: id,
-                                        courseWorkId: cwId,
-                                        userId: 'me'
-                                    }, (err, res) => {
-                                        if (err) {
-                                            callback(DataCommon.getAPIErrorType(err));
-                                        }
+                        const {courseWork} = res.data;
+                        courseWork?.forEach(cw => {
+                            const {workType, id: cwId, dueDate, dueTime} = cw;
+                            if (workType === 'ASSIGNMENT') {
+                                classroom.courses.courseWork.studentSubmissions.list({
+                                    courseId: id,
+                                    courseWorkId: cwId,
+                                    userId: 'me'
+                                }, (err, res) => {
+                                    if (err) {
+                                        callback(DataCommon.getAPIErrorType(err));
+                                        return;
+                                    }
 
-                                        // TODO: Order and check for other pages
-                                        // TODO: Use global page size counter
+                                    // TODO: Order and check for other pages
+                                    // TODO: Use global page size counter
 
-                                        const {studentSubmissions} = res.data;
-                                        if (studentSubmissions && studentSubmissions.length > 0) {
-                                            if (studentSubmissions[0].state !== 'TURNED_IN') {
+                                    const {studentSubmissions} = res.data;
+                                    if (studentSubmissions && studentSubmissions.length > 0) {
+                                        if (studentSubmissions[0].state !== 'TURNED_IN'
+                                            && studentSubmissions[0].state !== 'RETURNED') {
+                                            if (dueDate !== undefined && dueTime !== undefined) {
                                                 callback(null, {
                                                     title: cw.title || 'No Title',
                                                     description: cw.description?.substr(0, 50) ?? '',
@@ -124,11 +131,11 @@ export class Assignments {
                                                 });
                                             }
                                         }
-                                    });
-                                }
-                            });
+                                    }
+                                });
+                            }
                         });
-                    }
+                    });
                 });
             });
         });

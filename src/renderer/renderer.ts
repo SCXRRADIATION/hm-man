@@ -9,6 +9,8 @@ ipcRenderer.on('page-load', function (event, data) {
     if (fs.existsSync(data)) {
         document.getElementById('login-container').style.display = 'none';
         loadStartupContent();
+
+        document.getElementById("assignment-list-refresh").addEventListener('click', loadStartupContent);
     } else {
         document.getElementById('main-container').style.display = 'none';
         document.getElementById('login-btn').addEventListener('click', async function () {
@@ -60,8 +62,8 @@ ipcRenderer.on('oauth-login-complete', function (event, data) {
     loadStartupContent();
 });
 
-
 const loadStartupContent = function () {
+    document.getElementById('assignment-list-error').style.display = 'none';
     ipc.send<any>('load-startup-content');
 };
 
@@ -71,10 +73,17 @@ ipcRenderer.on('clear-assignments-list', function (event) {
 });
 
 ipcRenderer.on('render-assignments-error', function (event, err: Error) {
-    // TODO: Add error UI
+    const container = document.getElementById('assignment-list-error');
+    const message = document.getElementById('assignment-list-error-message');
+
+    document.getElementById('assignment-list-loading').style.display = 'none';
+    container.style.display = 'block';
+    message.innerHTML = err.message;
 });
 
 ipcRenderer.on('render-assignments-item', function (event, assignment: AssignmentPreview) {
+    document.getElementById("assignment-list-loading").style.display = "none";
+
     const list = document.getElementById('assignment-list-ul');
 
     const li = document.createElement('li');
@@ -107,6 +116,10 @@ ipcRenderer.on('render-assignments-item', function (event, assignment: Assignmen
 
     title.innerText = assignment.title;
     time.innerText = assignment.dueDays.toString() + 'd';
+    if (assignment.dueDays < 0) {
+        time.innerText = "Overdue";
+    }
+
     description.innerText = assignment.description;
     course.innerText = assignment.courseName;
 
@@ -116,9 +129,8 @@ ipcRenderer.on('render-assignments-item', function (event, assignment: Assignmen
     itemCourse.appendChild(course);
 
     listCompact.appendChild(itemTitle);
-    if (assignment.dueDays !== -1) {
-        listCompact.appendChild(itemTime);
-    }
+    listCompact.appendChild(itemTime);
+
     listFull.append(itemDescription, itemCourse);
 
     listItem.append(listCompact, listFull);
